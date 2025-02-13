@@ -1,5 +1,5 @@
 [project]
-name = "api-s-testing"
+name = "api-stress-testing-tool"
 version = "0.1.0"
 description = ""
 authors = [

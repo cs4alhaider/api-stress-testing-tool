@@ -7,6 +7,8 @@ from typing import Any
 import logging
 from pathlib import Path
 
+from config import get_config as request_config
+
 class APIStressTester:
     """
     A class for performing stress testing on APIs by making concurrent HTTP requests.
@@ -23,6 +25,7 @@ class APIStressTester:
         concurrent_requests: int = 10,
         headers: dict[str, str] | None = None,
         params: dict[str, Any] | None = None,
+        data: dict[str, Any] | None = None,
         method: str = "GET",
         log_file: str = "api_stress_test.jsonl",
         timeout: float = 60.0
@@ -36,6 +39,7 @@ class APIStressTester:
             concurrent_requests (int): Number of requests to make concurrently
             headers (dict): Optional HTTP headers to include with each request
             params (dict): Optional query parameters to include with each request
+            data (dict): Optional request body for POST/PUT requests
             method (str): HTTP method to use (GET, POST, etc.)
             log_file (str): Path to the log file where results will be stored
             timeout (float): Request timeout in seconds
@@ -45,6 +49,7 @@ class APIStressTester:
         self.concurrent_requests = concurrent_requests
         self.headers = headers or {}
         self.params = params or {}
+        self.data = data
         self.method = method.upper()
         self.log_file = log_file
         self.timeout = timeout
@@ -52,10 +57,10 @@ class APIStressTester:
 
     async def make_request(self, client: httpx.AsyncClient, request_id: int) -> dict[str, Any]:
         """
-        Make a single HTTP request and record the results.
+        Make a single async HTTP request and record the results.
 
         Args:
-            client (httpx.AsyncClient): The HTTP client to use for making requests
+            client (httpx.AsyncClient): The HTTP async client to use for making requests
             request_id (int): Unique identifier for this request
 
         Returns:
@@ -69,6 +74,7 @@ class APIStressTester:
             "method": self.method,
             "headers": self.headers,
             "params": self.params,
+            "data": self.data
         }
 
         try:
@@ -78,6 +84,7 @@ class APIStressTester:
                 url=self.base_url,
                 headers=self.headers,
                 params=self.params,
+                json=self.data if self.method in ["POST", "PUT", "PATCH"] else None
             )
             end_time = time.time()
             response_time = (end_time - start_time) * 1000  # Convert to milliseconds
@@ -151,6 +158,7 @@ def run_stress_test(
     concurrent_requests: int = 10,
     headers: dict[str, str] | None = None,
     params: dict[str, Any] | None = None,
+    data: dict[str, Any] | None = None,
     method: str = "GET",
     log_file: str = "api_stress_test.jsonl",
     timeout: float = 60.0
@@ -164,6 +172,7 @@ def run_stress_test(
         concurrent_requests (int): Number of requests to make concurrently
         headers (dict): Optional HTTP headers to include with each request
         params (dict): Optional query parameters to include with each request
+        data (dict): Optional request body for POST/PUT requests
         method (str): HTTP method to use (GET, POST, etc.)
         log_file (str): Path to the log file where results will be stored
         timeout (float): Request timeout in seconds
@@ -182,6 +191,7 @@ def run_stress_test(
         concurrent_requests=concurrent_requests,
         headers=headers,
         params=params,
+        data=data,
         method=method,
         log_file=log_file,
         timeout=timeout
@@ -191,28 +201,10 @@ def run_stress_test(
 
 if __name__ == "__main__":
     # Example usage
-    api_url = "https://jsonplaceholder.typicode.com/todos"
-    
-    # Example configuration
-    config = {
-        "total_requests": 100,  # Total number of requests to make
-        "concurrent_requests": 10,  # Number of concurrent requests
-        "headers": {
-            "User-Agent": "API-Stress-Tester/1.0",
-            "Accept": "application/json"
-        },
-        "params": {
-            # Add any query parameters here
-            # "page": 1,
-            # "limit": 10
-        },
-        "method": "GET",
-        "log_file": "logs/api_stress_test.jsonl",
-        "timeout": 30.0  # Timeout in seconds
-    }
+    # Configuration based on the curl command
+    config = request_config()
 
     # Run the stress test with the specified configuration
     run_stress_test(
-        url=api_url,
         **config
     )

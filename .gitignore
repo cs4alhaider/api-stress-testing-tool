@@ -1,2 +1,5 @@
 *.lock
 /logs
+/__pycache__
+
+/config.py

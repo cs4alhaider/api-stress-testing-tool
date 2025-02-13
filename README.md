@@ -38,8 +38,8 @@ After installation, make sure to add Poetry to your system's PATH:
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd <repository-name>
+git clone https://github.com/cs4alhaider/api-stress-testing-tool
+cd api-stress-testing-tool
 ```
 
 2. Install dependencies using Poetry:
